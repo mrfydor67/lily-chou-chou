@@ -1,0 +1,1414 @@
+/* ==========================================================================
+   ALL ABOUT LILY CHOU-CHOU (2001) — MONOGRAFÍA CRÍTICA DE CINEMATOGRAFÍA
+   Dirección: Shunji Iwai | Fotografía: Noboru Shinoda (1952–2004)
+   Estética: Papel Fotográfico Calcinado, Tinta de Archivo, Digital CineAlta 24p
+   ========================================================================== */
+
+/* --- 1. VARIABLES DE SISTEMA Y TOKENS DE DISEÑO --- */
+:root {
+  /* Lienzo y Superficies de Papel */
+  --bg-canvas: #F6F7F5;              /* Papel fotográfico blanco sobreexpuesto */
+  --bg-card: #ECEEEB;                /* Superficie mate de catálogo de arte */
+  --bg-card-hover: #E5E8E4;          /* Elevación sutil de papel */
+  --bg-surface-pure: #FFFFFF;        /* Montura passepartout inmaculada */
+  
+  /* Tintas y Tipografía Editorial */
+  --ink-primary: #1A1D1C;            /* Tinta carbón de archivo de alto contraste */
+  --ink-secondary: rgba(26, 29, 28, 0.72); /* Textos de crítica y notas curatoriales */
+  --ink-muted: rgba(26, 29, 28, 0.48);     /* Metadatos secundarios, fechas y minutos */
+  --ink-faint: rgba(26, 29, 28, 0.25);     /* Corchetes, retículas y números de guía */
+  
+  /* Separadores y Geometría Hairline */
+  --border-hairline: rgba(26, 29, 28, 0.12); /* Filete ultra-fino de 1px */
+  --border-subtle: rgba(26, 29, 28, 0.07);   /* Micro-ranuras divisorias */
+  --border-focus: #1A1D1C;                   /* Estado de foco accesible */
+  
+  /* Las 5 Frecuencias Cromáticas del Filme */
+  --color-sky: #F6F7F5;              /* Cielo Sobreexpuesto (Saturación y Espacio Nulo) */
+  --color-green: #6E8F5B;            /* Verde Arrozal (Clorofila y Soledad Agorafóbica) */
+  --color-cyan: #4BA3B5;             /* Cian Piscina (Suspensión Acuosa y Clemencia) */
+  --color-blue: #8FA8B2;             /* Azul Neblina (Estática de Catenaria Suburbana) */
+  --color-slate: #232726;            /* Pizarra Sombra (Ruido de Fondo CCD) */
+  
+  /* Tinte Ambiental Dinámico de las Láminas (Controlado vía JS) */
+  --ambient-tint-rgb: 246, 247, 245;
+  --ambient-tint-opacity: 0;
+  --ambient-plate-saturate: 100%;
+  --ambient-plate-contrast: 100%;
+  --ambient-plate-brightness: 100%;
+  
+  /* Familias Tipográficas */
+  --font-serif: 'Cormorant Garamond', 'Playfair Display', 'Shippori Mincho', 'Georgia', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --font-jp: 'Shippori Mincho', 'Cormorant Garamond', serif;
+  
+  /* Métricas Editoriales */
+  --max-width-editorial: 1280px;
+  --max-width-narrow: 860px;
+  --header-height: 56px;
+  
+  /* Curvas de Aceleración Suaves */
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-fade: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* --- 2. RESET Y BASE GLOBAL --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: var(--bg-canvas);
+  color: var(--ink-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.68;
+  color: var(--ink-secondary);
+  background-color: var(--bg-canvas);
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grano Óptico de Papel Fotográfico (No CRT, Submicroscópico) */
+.paper-grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Capa de Tinte Ambiental Global */
+#ambient-filter-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  background-color: rgba(var(--ambient-tint-rgb), var(--ambient-tint-opacity));
+  mix-blend-mode: multiply;
+  transition: background-color 0.8s var(--ease-editorial);
+}
+
+/* Selección de Texto */
+::selection {
+  background: var(--ink-primary);
+  color: var(--bg-canvas);
+}
+
+/* Enlaces */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+/* Focos Accesibles Hairline */
+a:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+/* --- 3. BARRA SUPERIOR DE ARCHIVO MONOGRÁFICO --- */
+.mono-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: var(--header-height);
+  background: rgba(246, 247, 245, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-hairline);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.3s ease;
+}
+
+.mono-header-inner {
+  width: 100%;
+  max-width: var(--max-width-editorial);
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mono-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.mono-brand-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-primary);
+  text-transform: uppercase;
+}
+
+.mono-brand-ref {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mono-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mono-nav-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  transition: color 0.2s ease;
+  position: relative;
+  padding: 0.25rem 0;
+}
+
+.mono-nav-link:hover {
+  color: var(--ink-primary);
+}
+
+.mono-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--ink-primary);
+}
+
+.mono-header-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mono-status-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-green);
+  display: inline-block;
+  transition: background-color 0.4s ease;
+}
+
+/* --- 4. LIENZO MONOGRÁFICO Y SECCIÓN 1: TESIS CURATORIAL --- */
+.mono-canvas {
+  width: 100%;
+  max-width: var(--max-width-editorial);
+  margin: 0 auto;
+  padding: 4rem 2rem 8rem 2rem;
+}
+
+.thesis-section {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 4rem;
+  padding-bottom: 5rem;
+  border-bottom: 1px solid var(--border-hairline);
+  position: relative;
+}
+
+.thesis-meta-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.monograph-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow-rule {
+  width: 24px;
+  height: 1px;
+  background-color: var(--border-hairline);
+}
+
+.monograph-title-primary {
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 5vw, 4.4rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink-primary);
+  margin-bottom: 1.25rem;
+}
+
+.monograph-title-primary em {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.monograph-title-jp {
+  font-family: var(--font-jp);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink-muted);
+  letter-spacing: 0.2em;
+  margin-bottom: 2.5rem;
+}
+
+.curatorial-metadata-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.meta-spec-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.spec-key {
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+.spec-val {
+  color: var(--ink-primary);
+  font-weight: 500;
+  text-align: right;
+}
+
+.thesis-body-col {
+  padding-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.thesis-lead {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--ink-primary);
+  margin-bottom: 1.75rem;
+}
+
+.thesis-critique-text {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--ink-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.thesis-critique-text p {
+  text-align: justify;
+}
+
+.thesis-footnote {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+/* --- 5. FOTOGRAMA HERO PANORÁMICO 2.39:1 --- */
+.hero-frame-section {
+  padding: 5rem 0 6rem 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.frame-lead-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.frame-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+}
+
+.frame-aspect-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-primary);
+  background: var(--bg-card);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border-hairline);
+}
+
+/* Montura Passepartout */
+.passepartout-mount {
+  background-color: var(--bg-surface-pure);
+  padding: 1.75rem;
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 4px 24px rgba(26, 29, 28, 0.03);
+  position: relative;
+  transition: transform 0.4s var(--ease-editorial);
+}
+
+.cinematic-raster-239 {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.39 / 1;
+  background-color: #E8EBE6;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+/* RENDERIZADO VISIBLE Y A PLENA OPACIDAD DE TODAS LAS IMÁGENES */
+.plate-media-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 2;
+  transition: transform 1.2s var(--ease-editorial), filter 0.8s var(--ease-editorial);
+  filter: saturate(var(--ambient-plate-saturate)) contrast(var(--ambient-plate-contrast)) brightness(var(--ambient-plate-brightness));
+}
+
+.passepartout-mount:hover .plate-media-img,
+.plate-mount:hover .plate-media-img {
+  transform: scale(1.025);
+}
+
+/* Contenedor de Fallback: OCULTO POR DEFECTO PARA NO TAPAR LAS IMÁGENES */
+.cinema-plate-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: #E8EBE6;
+}
+
+/* Solo se muestra el fallback si la imagen falló explícitamente y se añadió .fallback-active */
+.cinematic-raster-239.fallback-active .cinema-plate-fallback,
+.plate-raster.fallback-active .cinema-plate-fallback,
+.trama-raster.fallback-active .cinema-plate-fallback {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 5;
+}
+
+/* Si fallback-active está presente, ocultar el elemento img */
+.cinematic-raster-239.fallback-active .plate-media-img,
+.plate-raster.fallback-active .plate-media-img,
+.trama-raster.fallback-active .plate-media-img {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Gráficos Vectoriales y Siluetas del Fallback */
+.vector-fallback-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Insignia de Estado y Guía de Aspecto en el Fallback */
+.fallback-status-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(246, 247, 245, 0.92);
+  border: 1px solid var(--border-hairline);
+  padding: 0.85rem 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 4px 16px rgba(26, 29, 28, 0.05);
+}
+
+.fallback-path-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-primary);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.fallback-prompt-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Guías de Encuadre de Aspecto (Líneas de Corte y Esquinas) */
+.aspect-guides-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.guide-corner-tl,
+.guide-corner-tr,
+.guide-corner-bl,
+.guide-corner-br {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: rgba(26, 29, 28, 0.35);
+}
+
+.guide-corner-tl { top: 12px; left: 12px; border-top: 1px solid; border-left: 1px solid; }
+.guide-corner-tr { top: 12px; right: 12px; border-top: 1px solid; border-right: 1px solid; }
+.guide-corner-bl { bottom: 12px; left: 12px; border-bottom: 1px solid; border-left: 1px solid; }
+.guide-corner-br { bottom: 12px; right: 12px; border-bottom: 1px solid; border-right: 1px solid; }
+
+/* Retícula HUD del Visor de Cámara (11px Monospace) */
+.viewfinder-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 6;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hud-top-row,
+.hud-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+}
+
+.hud-reticle-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.hud-reticle-center::before,
+.hud-reticle-center::after {
+  content: '';
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.hud-reticle-center::before {
+  top: 11px;
+  left: 0;
+  width: 24px;
+  height: 1px;
+}
+
+.hud-reticle-center::after {
+  left: 11px;
+  top: 0;
+  width: 1px;
+  height: 24px;
+}
+
+/* Lavado de Tinte Ambiental en Láminas */
+.plate-tint-wash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  background-color: rgba(var(--ambient-tint-rgb), var(--ambient-tint-opacity));
+  mix-blend-mode: color;
+  opacity: var(--ambient-tint-opacity);
+  transition: background-color 0.8s var(--ease-editorial), opacity 0.8s var(--ease-editorial);
+}
+
+/* Bloque de Pie de Lámina Hero */
+.hero-caption-grid {
+  margin-top: 1.75rem;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.caption-meta-block {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.caption-meta-highlight {
+  color: var(--ink-primary);
+  font-weight: 500;
+  display: block;
+}
+
+.caption-critique-block {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  color: var(--ink-primary);
+  font-weight: 400;
+}
+
+.caption-critique-block span {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--ink-secondary);
+  display: block;
+  margin-top: 0.5rem;
+}
+
+/* --- 6. SECCIÓN 2: ESTUDIOS DE PAISAJE Y PLANOS ICÓNICOS (4 LÁMINAS) --- */
+.plates-section {
+  padding: 6rem 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.section-editorial-header {
+  margin-bottom: 4rem;
+}
+
+.section-number-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 300;
+  color: var(--ink-primary);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+
+.section-lead-desc {
+  max-width: 680px;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--ink-secondary);
+}
+
+/* Artículo Individual de Lámina de Gran Formato */
+.gallery-plate-item {
+  margin-bottom: 7rem;
+  padding-bottom: 5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.gallery-plate-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.plate-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 0.75rem;
+}
+
+.plate-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plate-index-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+}
+
+.plate-title-text {
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  font-weight: 400;
+  color: var(--ink-primary);
+  letter-spacing: -0.01em;
+}
+
+.plate-title-jp {
+  font-family: var(--font-jp);
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.15em;
+  margin-left: 0.75rem;
+}
+
+.plate-lens-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-primary);
+  background: var(--bg-card);
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border-hairline);
+}
+
+/* Montura y Raster de Lámina */
+.plate-mount {
+  background-color: var(--bg-surface-pure);
+  padding: 1.5rem;
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 4px 20px rgba(26, 29, 28, 0.02);
+  position: relative;
+}
+
+.plate-raster {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background-color: #EAECE8;
+}
+
+.aspect-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-239 {
+  aspect-ratio: 2.39 / 1;
+}
+
+/* Rejilla de Crítica y Ficha Técnica de la Lámina */
+.plate-critique-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 3.5rem;
+  margin-top: 0.5rem;
+}
+
+.critique-essay-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.critique-motif-lead {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.45;
+  color: var(--ink-primary);
+  font-weight: 400;
+}
+
+.critique-body-text {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.78;
+  color: var(--ink-secondary);
+}
+
+.plate-technical-sidebar {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.tech-block-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-primary);
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.craft-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.craft-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.craft-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-primary);
+  font-weight: 500;
+}
+
+.craft-explanation {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+  margin-top: 0.25rem;
+}
+
+/* --- 7. NUEVA SECCIÓN: TRAMA Y GUION (ESTRUCTURA NARRATIVA Y ÉTER) --- */
+.trama-section {
+  padding: 6rem 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.trama-editorial-intro {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 4rem;
+  margin-bottom: 4.5rem;
+  padding-bottom: 3.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.trama-lead-essay {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.trama-lead-heading {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  line-height: 1.35;
+  color: var(--ink-primary);
+  font-weight: 400;
+}
+
+.trama-lead-body {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--ink-secondary);
+}
+
+.trama-concepts-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.trama-concept-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.trama-concept-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.trama-concept-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.trama-concept-desc {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--ink-secondary);
+}
+
+/* Las 3 Láminas Narrativas de la Trama */
+.trama-plates-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5.5rem;
+}
+
+.trama-plate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.trama-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 0.65rem;
+}
+
+.trama-plate-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+}
+
+.trama-plate-name {
+  font-family: var(--font-serif);
+  font-size: 1.7rem;
+  font-weight: 400;
+  color: var(--ink-primary);
+}
+
+.trama-timestamp-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-primary);
+  background: var(--bg-card);
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border-hairline);
+}
+
+.trama-raster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background-color: #E8EBE6;
+}
+
+.trama-critique-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 3.5rem;
+  margin-top: 0.5rem;
+}
+
+.trama-analysis-text {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--ink-secondary);
+}
+
+.trama-structure-notes {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trama-note-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.trama-note-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.trama-note-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-primary);
+  font-weight: 500;
+}
+
+.trama-note-body {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+  margin-top: 0.2rem;
+}
+
+/* --- 8. SECCIÓN 4: ESTUDIO CROMÁTICO Y LUMÍNICO (INTERACTIVO) --- */
+.color-study-section {
+  padding: 6rem 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.swatches-precision-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin: 2.5rem 0 3rem 0;
+}
+
+.swatch-chip-btn {
+  background: var(--bg-surface-pure);
+  border: 1px solid var(--border-hairline);
+  padding: 1.25rem 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+  transition: all 0.25s var(--ease-fade);
+  position: relative;
+  outline: none;
+}
+
+.swatch-chip-btn:hover {
+  border-color: var(--ink-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(26, 29, 28, 0.05);
+}
+
+.swatch-chip-btn.active {
+  border-color: var(--ink-primary);
+  background-color: var(--bg-card);
+  box-shadow: 0 0 0 1px var(--ink-primary);
+}
+
+.swatch-color-pill {
+  width: 100%;
+  height: 48px;
+  border: 1px solid var(--border-hairline);
+  position: relative;
+  transition: transform 0.25s ease;
+}
+
+.swatch-chip-btn:hover .swatch-color-pill {
+  transform: scale(0.98);
+}
+
+.swatch-meta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.swatch-hex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-primary);
+  font-weight: 500;
+}
+
+.swatch-name {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-primary);
+  line-height: 1.25;
+}
+
+.swatch-role {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Ficha Dinámica de Análisis de la Tonalidad */
+.swatch-critique-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 2.5rem;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 3.5rem;
+  align-items: start;
+  transition: background-color 0.4s ease;
+}
+
+.swatch-metric-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.active-swatch-display-pill {
+  width: 100%;
+  height: 80px;
+  border: 1px solid var(--border-hairline);
+  transition: background-color 0.4s ease;
+  position: relative;
+}
+
+.active-swatch-display-pill::after {
+  content: 'PATRÓN CROMÁTICO';
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-primary);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1px 4px;
+}
+
+.swatch-metric-table {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  letter-spacing: 0.06em;
+}
+
+.metric-line {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.swatch-critique-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.swatch-essay-title {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  font-weight: 400;
+  color: var(--ink-primary);
+  line-height: 1.2;
+}
+
+.swatch-essay-subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+}
+
+.swatch-essay-body {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--ink-secondary);
+}
+
+.swatch-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.swatch-reset-btn {
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-primary);
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.swatch-reset-btn:hover {
+  background: var(--ink-primary);
+  color: var(--bg-canvas);
+}
+
+.swatch-tint-intensity-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+/* --- 9. COLOFÓN TÉCNICO Y ARCHIVO NOBORU SHINODA --- */
+.colophon-section {
+  padding: 6rem 0 3rem 0;
+}
+
+.colophon-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 4rem;
+}
+
+.shinoda-memorial-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.colophon-lead-title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: var(--ink-primary);
+  line-height: 1.25;
+}
+
+.memorial-critique {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--ink-secondary);
+}
+
+.technical-comparison-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  padding: 1.75rem;
+}
+
+.table-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-primary);
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.spec-compare-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 1fr;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.spec-compare-row:last-child {
+  border-bottom: none;
+}
+
+.col-param {
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+.col-hd {
+  color: var(--ink-primary);
+  font-weight: 500;
+}
+
+.col-film {
+  color: var(--ink-muted);
+}
+
+/* Pie de Página Monográfico */
+.mono-footer {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+/* --- 10. MEDIA QUERIES RESPONSIVAS --- */
+@media (max-width: 1024px) {
+  .thesis-section {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  
+  .plate-critique-grid,
+  .trama-editorial-intro,
+  .trama-critique-row {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .swatches-precision-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .swatch-critique-card {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .colophon-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mono-canvas {
+    padding: 2.5rem 1.25rem 5rem 1.25rem;
+  }
+  
+  .mono-nav {
+    display: none;
+  }
+  
+  .passepartout-mount,
+  .plate-mount {
+    padding: 0.75rem;
+  }
+  
+  .hero-caption-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .swatches-precision-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .plate-header-row,
+  .trama-meta-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .spec-compare-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  
+  .mono-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
